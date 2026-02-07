@@ -127,10 +127,10 @@ Following `ai-docs/design.md`:
 
 ## API Reference
 
-### Save Flow
+### Export Flow
 
 ```
-User clicks Save button
+User clicks Export button
     ↓
 exportToCsv() generates CSV string
     ↓
