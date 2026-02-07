@@ -121,7 +121,7 @@ export function importFromCsv(
     const trimmedValue = sanitizedValue.trim()
     if (trimmedValue !== '' && isNaN(Number(trimmedValue))) {
       throw new CsvImportError(
-        `Row ${startIndex + i + 1}: Column 2 must be a valid number, found "${valueStr}"`
+        `Row ${startIndex + i + 1}: Column 2 must be a valid number, found "${sanitizedValue}"`
       )
     }
 
