@@ -340,7 +340,7 @@ describe('ColumnSumTable', () => {
       await user.type(valueInput, '999999999999')
 
       const totalRow = screen.getByText('Total').closest('tr')
-      expect(totalRow).toHaveTextContent('999999999999')
+      expect(totalRow).toHaveTextContent('999,999,999,999')
     })
 
     it('should handle very small decimal numbers', async () => {
