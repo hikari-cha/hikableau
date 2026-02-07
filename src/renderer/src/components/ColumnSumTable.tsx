@@ -71,11 +71,16 @@ export function ColumnSumTable(): React.JSX.Element {
   }
 
   const formatTotal = (total: number): string => {
-    // Format to remove unnecessary trailing zeros
+    // Format to remove unnecessary trailing zeros without imposing fixed rounding
     if (Number.isInteger(total)) {
       return total.toString()
     }
-    return total.toFixed(10).replace(/\.?0+$/, '')
+    const str = String(total)
+    // If the number is in exponential form, return as-is to avoid corrupting the representation
+    if (str.includes('e') || str.includes('E')) {
+      return str
+    }
+    return str.replace(/\.?0+$/, '')
   }
 
   return (
