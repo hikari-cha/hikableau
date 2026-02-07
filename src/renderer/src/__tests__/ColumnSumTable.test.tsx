@@ -436,4 +436,232 @@ describe('ColumnSumTable', () => {
       expect(skipTotalCheckbox).toBeChecked()
     })
   })
+
+  describe('Row Deletion', () => {
+    it('should not render delete button when only one row exists', () => {
+      render(<ColumnSumTable />)
+
+      // With only 1 row, no delete button should be visible
+      const deleteButtons = screen.queryAllByRole('button', { name: /delete row/i })
+      expect(deleteButtons).toHaveLength(0)
+    })
+
+    it('should render a delete button for each row when multiple rows exist', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Add a second row
+      const addButton = screen.getByRole('button', { name: /add row/i })
+      await user.click(addButton)
+
+      // Should have 2 delete buttons (one per row)
+      const deleteButtons = screen.getAllByRole('button', { name: /delete row/i })
+      expect(deleteButtons).toHaveLength(2)
+    })
+
+    it('should delete a row when delete button is clicked', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Add two more rows
+      const addButton = screen.getByRole('button', { name: /add row/i })
+      await user.click(addButton)
+      await user.click(addButton)
+
+      // Should have 3 rows
+      let descriptionInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descriptionInputs).toHaveLength(3)
+
+      // Delete the second row
+      const deleteButtons = screen.getAllByRole('button', { name: /delete row/i })
+      await user.click(deleteButtons[1])
+
+      // Should now have 2 rows
+      descriptionInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descriptionInputs).toHaveLength(2)
+    })
+
+    it('should remove row data from sum calculation when deleted', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Add a row
+      const addButton = screen.getByRole('button', { name: /add row/i })
+      await user.click(addButton)
+
+      // Enter values
+      const valueInputs = screen.getAllByRole('textbox', { name: /value/i })
+      await user.type(valueInputs[0], '100')
+      await user.type(valueInputs[1], '50')
+
+      let totalRow = screen.getByText('Total').closest('tr')
+      expect(totalRow).toHaveTextContent('150')
+
+      // Delete the first row (with value 100)
+      const deleteButtons = screen.getAllByRole('button', { name: /delete row/i })
+      await user.click(deleteButtons[0])
+
+      // Total should now be 50
+      totalRow = screen.getByText('Total').closest('tr')
+      expect(totalRow).toHaveTextContent('50')
+    })
+
+    it('should hide delete button when deleting down to one row', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Add a row (now we have 2)
+      const addButton = screen.getByRole('button', { name: /add row/i })
+      await user.click(addButton)
+
+      // Should have 2 delete buttons
+      let deleteButtons = screen.getAllByRole('button', { name: /delete row/i })
+      expect(deleteButtons).toHaveLength(2)
+
+      // Delete one row
+      await user.click(deleteButtons[0])
+
+      // Now only 1 row remains, so no delete buttons should be visible
+      deleteButtons = screen.queryAllByRole('button', { name: /delete row/i })
+      expect(deleteButtons).toHaveLength(0)
+    })
+
+    it('should clear validation errors when row is deleted', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Add a row (need 2 rows to have delete button)
+      const addButton = screen.getByRole('button', { name: /add row/i })
+      await user.click(addButton)
+
+      // Enter an invalid value in row 1
+      const valueInput = screen.getByRole('textbox', { name: /value for row 1/i })
+      await user.type(valueInput, 'invalid')
+
+      // Error should be visible
+      expect(screen.getByText(/value must be a valid number/i)).toBeInTheDocument()
+
+      // Delete row 1
+      const deleteButtons = screen.getAllByRole('button', { name: /delete row/i })
+      await user.click(deleteButtons[0])
+
+      // Error should be gone
+      expect(screen.queryByText(/value must be a valid number/i)).not.toBeInTheDocument()
+    })
+
+    it('should have delete button with minus icon', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Add a row to make delete buttons visible
+      const addButton = screen.getByRole('button', { name: /add row/i })
+      await user.click(addButton)
+
+      const deleteButton = screen.getByRole('button', { name: /delete row 1/i })
+      expect(deleteButton).toBeInTheDocument()
+
+      // The button should contain an SVG (the Minus icon)
+      const svg = deleteButton.querySelector('svg')
+      expect(svg).toBeInTheDocument()
+    })
+  })
+
+  describe('Table Clear', () => {
+    it('should render a Clear button', () => {
+      render(<ColumnSumTable />)
+
+      const clearButton = screen.getByRole('button', { name: /clear/i })
+      expect(clearButton).toBeInTheDocument()
+    })
+
+    it('should position Clear button next to Add Row button', () => {
+      render(<ColumnSumTable />)
+
+      const addButton = screen.getByRole('button', { name: /add row/i })
+      const clearButton = screen.getByRole('button', { name: /clear/i })
+
+      // Both should be in the same parent container
+      expect(addButton.parentElement).toBe(clearButton.parentElement)
+    })
+
+    it('should reset table to initial state when Clear is clicked', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Add rows and enter data
+      const addButton = screen.getByRole('button', { name: /add row/i })
+      await user.click(addButton)
+      await user.click(addButton)
+
+      const descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      const valueInputs = screen.getAllByRole('textbox', { name: /value/i })
+
+      await user.type(descInputs[0], 'Item A')
+      await user.type(valueInputs[0], '100')
+      await user.type(descInputs[1], 'Item B')
+      await user.type(valueInputs[1], '200')
+
+      // Verify data is entered
+      expect(screen.getAllByRole('textbox', { name: /description/i })).toHaveLength(3)
+      const totalRow = screen.getByText('Total').closest('tr')
+      expect(totalRow).toHaveTextContent('300')
+
+      // Click Clear
+      const clearButton = screen.getByRole('button', { name: /clear/i })
+      await user.click(clearButton)
+
+      // Should reset to initial state (1 empty row)
+      const newDescInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(newDescInputs).toHaveLength(1)
+      expect(newDescInputs[0]).toHaveValue('')
+
+      const newValueInputs = screen.getAllByRole('textbox', { name: /value/i })
+      expect(newValueInputs[0]).toHaveValue('')
+
+      // Total should be 0
+      const newTotalRow = screen.getByText('Total').closest('tr')
+      expect(newTotalRow).toHaveTextContent('0')
+    })
+
+    it('should clear validation errors when Clear is clicked', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Enter an invalid value
+      const valueInput = screen.getByRole('textbox', { name: /value for row 1/i })
+      await user.type(valueInput, 'invalid')
+
+      // Error should be visible
+      expect(screen.getByText(/value must be a valid number/i)).toBeInTheDocument()
+
+      // Click Clear
+      const clearButton = screen.getByRole('button', { name: /clear/i })
+      await user.click(clearButton)
+
+      // Error should be gone
+      expect(screen.queryByText(/value must be a valid number/i)).not.toBeInTheDocument()
+    })
+
+    it('should work correctly after multiple add/delete operations', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Add and delete some rows
+      const addButton = screen.getByRole('button', { name: /add row/i })
+      await user.click(addButton)
+      await user.click(addButton)
+
+      const deleteButtons = screen.getAllByRole('button', { name: /delete row/i })
+      await user.click(deleteButtons[1])
+
+      // Now clear
+      const clearButton = screen.getByRole('button', { name: /clear/i })
+      await user.click(clearButton)
+
+      // Should be back to initial state
+      const descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs).toHaveLength(1)
+      expect(descInputs[0]).toHaveValue('')
+    })
+  })
 })
