@@ -81,6 +81,16 @@ describe('formatWithThousandsSeparator', () => {
       expect(formatWithThousandsSeparator('abc')).toBe('abc')
       expect(formatWithThousandsSeparator('12abc')).toBe('12abc')
     })
+
+    it('should return original string for multiple decimal points', () => {
+      expect(formatWithThousandsSeparator('1.2.3')).toBe('1.2.3')
+      expect(formatWithThousandsSeparator('1234.56.78')).toBe('1234.56.78')
+    })
+
+    it('should return original string for non-digit fractional parts', () => {
+      expect(formatWithThousandsSeparator('1234.ab')).toBe('1234.ab')
+      expect(formatWithThousandsSeparator('1234.12ab')).toBe('1234.12ab')
+    })
   })
 
   describe('whitespace handling', () => {
