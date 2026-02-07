@@ -1,6 +1,6 @@
 # Common Implementation Guidelines
 
-- **Context Awareness**: Identify the implementation ID (e.g., `hikari-1`) from the current git branch name. Use the documentation found in `ai-docs/{ID}` as a reference for your implementation.
+- **Context Awareness**: Identify the implementation ID (e.g., `hikari-1`) from the current git branch name. Use the documentation found in the directory under `ai-docs/` whose name starts with `{ID}-` (e.g., `ai-docs/hikari-1-column-sum`) as a reference for your implementation.
 - **Documentation**:
   - Each implementation directory contains `implementation.md` and `test.md`.
   - **Implementation Log**: Record the details of your actual implementation in `implementation.md`.
