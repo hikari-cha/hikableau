@@ -1,15 +1,23 @@
-# Hikari-2: CSV Import/Export Test Results
+# Hikari-4: CSV Import/Export Test Results
 
 ## Test Summary
 
 | Category | Tests | Status |
 |----------|-------|--------|
-| CSV Export | 13 | ✅ Pass |
-| CSV Import | 11 | ✅ Pass |
-| Validation Errors | 9 | ✅ Pass |
-| Round-trip Tests | 3 | ✅ Pass |
-| UI Integration | 6 | ✅ Pass |
-| **Total** | **42** | ✅ **All Pass** |
+| **csv.test.ts** | **36** | ✅ **Pass** |
+| - CSV Export | 14 | ✅ Pass |
+| - CSV Import | 10 | ✅ Pass |
+| - Validation Errors | 9 | ✅ Pass |
+| - Round-trip Tests | 3 | ✅ Pass |
+| **ColumnSumTable.test.tsx** | **35** | ✅ **Pass** |
+| - Initial Rendering | 4 | ✅ Pass |
+| - Adding Rows | 3 | ✅ Pass |
+| - Sum Calculation | 6 | ✅ Pass |
+| - Data Validation | 9 | ✅ Pass |
+| - Table Structure | 3 | ✅ Pass |
+| - Edge Cases | 4 | ✅ Pass |
+| - Import/Export UI | 6 | ✅ Pass |
+| **Total** | **71** | ✅ **All Pass** |
 
 ## Test Run Output
 
@@ -80,7 +88,9 @@
 | Without header and total | Export→Import preserves data | ✅ |
 | Special characters | Commas and quotes preserved | ✅ |
 
-### UI Integration Tests (`ColumnSumTable.test.tsx`)
+### Import/Export UI Tests (`ColumnSumTable.test.tsx`)
+
+> **Note:** The ColumnSumTable.test.tsx file contains 35 tests total covering all aspects of the component. The 6 tests listed below are specifically for the CSV Import/Export UI feature.
 
 | Test Case | Description | Result |
 |-----------|-------------|--------|
