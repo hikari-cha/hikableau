@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { Plus, Download, Upload, Minus, Trash2 } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
 import { Input } from '@renderer/components/ui/input'
-import { cn } from '@renderer/lib/utils'
+import { cn, formatWithThousandsSeparator, removeThousandsSeparator } from '@renderer/lib/utils'
 import {
   exportToCsv,
   importFromCsv,
@@ -164,15 +164,19 @@ export function ColumnSumTable(): React.JSX.Element {
 
   const formatTotal = (total: number): string => {
     // Format to remove unnecessary trailing zeros without imposing fixed rounding
+    let str: string
     if (Number.isInteger(total)) {
-      return total.toString()
+      str = total.toString()
+    } else {
+      str = String(total)
+      // If the number is in exponential form, return as-is to avoid corrupting the representation
+      if (str.includes('e') || str.includes('E')) {
+        return str
+      }
+      str = str.replace(/\.?0+$/, '')
     }
-    const str = String(total)
-    // If the number is in exponential form, return as-is to avoid corrupting the representation
-    if (str.includes('e') || str.includes('E')) {
-      return str
-    }
-    return str.replace(/\.?0+$/, '')
+    // Apply thousands separator formatting
+    return formatWithThousandsSeparator(str)
   }
 
   const handleExport = useCallback(async () => {
@@ -261,8 +265,8 @@ export function ColumnSumTable(): React.JSX.Element {
                 <div>
                   <Input
                     type="text"
-                    value={row.value}
-                    onChange={(e) => updateRow(row.id, 'value', e.target.value)}
+                    value={formatWithThousandsSeparator(row.value)}
+                    onChange={(e) => updateRow(row.id, 'value', removeThousandsSeparator(e.target.value))}
                     onKeyDown={(e) => handleKeyDown(e, row.id)}
                     placeholder="0"
                     className={cn(
