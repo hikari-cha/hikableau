@@ -238,7 +238,10 @@ export async function downloadCsv(content: string, suggestedFilename: string): P
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+  // Defer revoking the object URL to avoid race conditions in some browsers
+  setTimeout(() => {
+    URL.revokeObjectURL(url)
+  }, 0)
 }
 
 /**
