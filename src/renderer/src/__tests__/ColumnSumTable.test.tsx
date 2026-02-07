@@ -664,4 +664,164 @@ describe('ColumnSumTable', () => {
       expect(descInputs[0]).toHaveValue('')
     })
   })
+
+  describe('Enter Key Row Insertion', () => {
+    it('should insert a new row below when Enter is pressed in description column', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Initially 1 data row
+      let descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs).toHaveLength(1)
+
+      // Press Enter in the description input
+      await user.type(descInputs[0], '{Enter}')
+
+      // Should now have 2 data rows
+      descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs).toHaveLength(2)
+    })
+
+    it('should insert a new row below when Enter is pressed in value column', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Initially 1 data row
+      let valueInputs = screen.getAllByRole('textbox', { name: /value/i })
+      expect(valueInputs).toHaveLength(1)
+
+      // Press Enter in the value input
+      await user.type(valueInputs[0], '{Enter}')
+
+      // Should now have 2 data rows
+      valueInputs = screen.getAllByRole('textbox', { name: /value/i })
+      expect(valueInputs).toHaveLength(2)
+    })
+
+    it('should focus the first input (description) of the newly created row', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      const descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      
+      // Press Enter in the first row's description
+      await user.type(descInputs[0], '{Enter}')
+
+      // Get the new description inputs
+      const newDescInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(newDescInputs).toHaveLength(2)
+
+      // The second row's description input should be focused
+      expect(newDescInputs[1]).toHaveFocus()
+    })
+
+    it('should focus description input of new row when Enter is pressed in value column', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      const valueInputs = screen.getAllByRole('textbox', { name: /value/i })
+      
+      // Press Enter in the value column
+      await user.type(valueInputs[0], '{Enter}')
+
+      // Get the new description inputs
+      const descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs).toHaveLength(2)
+
+      // The second row's description input should be focused
+      expect(descInputs[1]).toHaveFocus()
+    })
+
+    it('should insert row at correct position when Enter is pressed from middle row', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Add two rows first (total 3 rows)
+      const addButton = screen.getByRole('button', { name: /add row/i })
+      await user.click(addButton)
+      await user.click(addButton)
+
+      // Type in each row to identify them
+      let descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      await user.type(descInputs[0], 'First')
+      await user.type(descInputs[1], 'Second')
+      await user.type(descInputs[2], 'Third')
+
+      // Press Enter in the second row's description
+      await user.click(descInputs[1])
+      await user.keyboard('{Enter}')
+
+      // Should now have 4 rows
+      descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs).toHaveLength(4)
+
+      // Order should be: First, Second, (empty new row), Third
+      expect(descInputs[0]).toHaveValue('First')
+      expect(descInputs[1]).toHaveValue('Second')
+      expect(descInputs[2]).toHaveValue('') // Newly inserted row
+      expect(descInputs[3]).toHaveValue('Third')
+    })
+
+    it('should preserve existing data when inserting a new row via Enter key', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Add a row and enter data
+      const addButton = screen.getByRole('button', { name: /add row/i })
+      await user.click(addButton)
+
+      let descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      let valueInputs = screen.getAllByRole('textbox', { name: /value/i })
+      
+      await user.type(descInputs[0], 'Item A')
+      await user.type(valueInputs[0], '100')
+      await user.type(descInputs[1], 'Item B')
+      await user.type(valueInputs[1], '200')
+
+      // Press Enter in first row
+      await user.click(descInputs[0])
+      await user.keyboard('{Enter}')
+
+      // Check that all data is preserved
+      descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      valueInputs = screen.getAllByRole('textbox', { name: /value/i })
+
+      expect(descInputs).toHaveLength(3)
+      expect(descInputs[0]).toHaveValue('Item A')
+      expect(valueInputs[0]).toHaveValue('100')
+      expect(descInputs[1]).toHaveValue('') // New row
+      expect(valueInputs[1]).toHaveValue('') // New row
+      expect(descInputs[2]).toHaveValue('Item B')
+      expect(valueInputs[2]).toHaveValue('200')
+
+      // Total should still be 300
+      const totalRow = screen.getByText('Total').closest('tr')
+      expect(totalRow).toHaveTextContent('300')
+    })
+
+    it('should allow multiple consecutive Enter key presses to insert multiple rows', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      const descInput = screen.getByRole('textbox', { name: /description for row 1/i })
+      
+      // Press Enter 3 times
+      await user.type(descInput, '{Enter}')
+      
+      let descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs).toHaveLength(2)
+      
+      // Focus should now be on row 2, press Enter again
+      await user.keyboard('{Enter}')
+      
+      descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs).toHaveLength(3)
+      
+      // Focus should now be on row 3, press Enter again
+      await user.keyboard('{Enter}')
+      
+      descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs).toHaveLength(4)
+    })
+  })
 })
