@@ -32,11 +32,7 @@ export class CsvImportError extends Error {
  * @param options - Export options
  * @returns CSV string in UTF-8 format
  */
-export function exportToCsv(
-  rows: CsvRow[],
-  total: number,
-  options: ExportOptions
-): string {
+export function exportToCsv(rows: CsvRow[], total: number, options: ExportOptions): string {
   const lines: string[] = []
 
   // Add header if option is enabled
@@ -69,10 +65,7 @@ export function exportToCsv(
  * @returns Array of parsed row data
  * @throws CsvImportError if validation fails
  */
-export function importFromCsv(
-  csvContent: string,
-  options: ImportOptions
-): CsvRow[] {
+export function importFromCsv(csvContent: string, options: ImportOptions): CsvRow[] {
   const lines = csvContent.split(/\r?\n/).filter((line) => line.trim() !== '')
 
   if (lines.length === 0) {
@@ -187,7 +180,7 @@ function escapeCsvRow(fields: string[]): string {
  */
 function escapeCsvField(field: string): string {
   let sanitized = field
-  
+
   // CSV injection prevention: prefix dangerous starting characters with single quote
   // This prevents Excel/Sheets from interpreting the field as a formula
   if (field.length > 0) {
@@ -196,9 +189,14 @@ function escapeCsvField(field: string): string {
       sanitized = "'" + field
     }
   }
-  
+
   // Quote the field if it contains special characters
-  if (sanitized.includes(',') || sanitized.includes('"') || sanitized.includes('\n') || sanitized.includes('\r')) {
+  if (
+    sanitized.includes(',') ||
+    sanitized.includes('"') ||
+    sanitized.includes('\n') ||
+    sanitized.includes('\r')
+  ) {
     return `"${sanitized.replace(/"/g, '""')}"`
   }
   return sanitized
