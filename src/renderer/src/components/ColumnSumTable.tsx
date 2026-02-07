@@ -91,16 +91,21 @@ export function ColumnSumTable(): React.JSX.Element {
   }, [])
 
   const insertRowBelow = useCallback((currentRowId: string) => {
-    const newRowId = crypto.randomUUID()
+    let insertedRowId: string | null = null
     setRows((prevRows) => {
       const currentIndex = prevRows.findIndex((row) => row.id === currentRowId)
       if (currentIndex === -1) return prevRows
+
+      const newRowId = crypto.randomUUID()
+      insertedRowId = newRowId
 
       const newRows = [...prevRows]
       newRows.splice(currentIndex + 1, 0, { id: newRowId, description: '', value: '' })
       return newRows
     })
-    setFocusRowId(newRowId)
+    if (insertedRowId) {
+      setFocusRowId(insertedRowId)
+    }
   }, [])
 
   // Effect to focus on the new row's first input
