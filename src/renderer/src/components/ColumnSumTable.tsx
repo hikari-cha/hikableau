@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react'
-import { Plus, Download, Upload } from 'lucide-react'
+import { Plus, Download, Upload, Minus, Trash2 } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
 import { Input } from '@renderer/components/ui/input'
 import { cn } from '@renderer/lib/utils'
@@ -67,6 +67,17 @@ export function ColumnSumTable(): React.JSX.Element {
 
   const addRow = useCallback(() => {
     setRows((prevRows) => [...prevRows, { id: crypto.randomUUID(), description: '', value: '' }])
+  }, [])
+
+  const deleteRow = useCallback((id: string) => {
+    setRows((prevRows) => prevRows.filter((row) => row.id !== id))
+    setErrors((prevErrors) => prevErrors.filter((e) => e.rowId !== id))
+  }, [])
+
+  const clearTable = useCallback(() => {
+    setRows([{ id: crypto.randomUUID(), description: '', value: '' }])
+    setErrors([])
+    setImportError(null)
   }, [])
 
   const calculateTotal = useCallback((): number => {
@@ -149,7 +160,7 @@ export function ColumnSumTable(): React.JSX.Element {
   }, [importOptions])
 
   return (
-    <div className="w-full max-w-2xl">
+    <div className="relative w-full max-w-2xl">
       <table className="w-full border-collapse border border-slate-300">
         <thead>
           <tr className="bg-slate-50">
@@ -163,7 +174,7 @@ export function ColumnSumTable(): React.JSX.Element {
         </thead>
         <tbody>
           {rows.map((row, index) => (
-            <tr key={row.id}>
+            <tr key={row.id} className="group">
               <td className="border border-slate-300 p-1">
                 <div>
                   <Input
@@ -182,7 +193,7 @@ export function ColumnSumTable(): React.JSX.Element {
                   )}
                 </div>
               </td>
-              <td className="border border-slate-300 p-1">
+              <td className="relative border border-slate-300 p-1">
                 <div>
                   <Input
                     type="text"
@@ -199,6 +210,17 @@ export function ColumnSumTable(): React.JSX.Element {
                     <p className="mt-1 text-xs text-red-500">{getError(row.id, 'value')}</p>
                   )}
                 </div>
+                {rows.length > 1 && (
+                  <Button
+                    onClick={() => deleteRow(row.id)}
+                    variant="ghost"
+                    size="sm"
+                    className="absolute -right-8 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full p-0 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-100 hover:text-red-600"
+                    aria-label={`Delete row ${index + 1}`}
+                  >
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                )}
               </td>
             </tr>
           ))}
@@ -213,10 +235,16 @@ export function ColumnSumTable(): React.JSX.Element {
       </table>
 
       <div className="mt-4 flex items-center justify-between">
-        <Button onClick={addRow} variant="default" size="sm" className="gap-1">
-          <Plus className="h-4 w-4" />
-          Add Row
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={addRow} variant="default" size="sm" className="gap-1">
+            <Plus className="h-4 w-4" />
+            Add Row
+          </Button>
+          <Button onClick={clearTable} variant="outline" size="sm" className="gap-1">
+            <Trash2 className="h-4 w-4" />
+            Clear
+          </Button>
+        </div>
 
         <div className="flex gap-2">
           <Button onClick={handleExport} variant="outline" size="sm" className="gap-1">
