@@ -117,7 +117,7 @@ const [importError, setImportError] = useState<string | null>(null)
 Following `ai-docs/design.md`:
 
 - **Buttons**: Using shadcn Button component with 'outline' variant for Export/Import (secondary actions)
-- **Icons**: Using Lucide React icons (Upload for export, Download for import)
+- **Icons**: Using Lucide React icons (Upload for Export, Download for Import)
 - **Layout**: Flexbox for button positioning (`flex items-center justify-between`)
 - **Colors**: 
   - Error state: Red-50 background, red-300 border, red-600/800 text
