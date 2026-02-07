@@ -260,6 +260,43 @@ describe('ColumnSumTable', () => {
       const errorMessage = screen.getByText(/value must be a valid number/i)
       expect(errorMessage).toHaveClass('text-red-500')
     })
+
+    it('should treat whitespace-only input as empty (no error)', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      const valueInput = screen.getByRole('textbox', { name: /value for row 1/i })
+      await user.type(valueInput, '   ')
+
+      // No error should be shown for whitespace-only input
+      expect(screen.queryByText(/value must be a valid number/i)).not.toBeInTheDocument()
+    })
+
+    it('should trim whitespace from numeric input and accept it', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      const valueInput = screen.getByRole('textbox', { name: /value for row 1/i })
+      await user.type(valueInput, '  123  ')
+
+      // No error should be shown
+      expect(screen.queryByText(/value must be a valid number/i)).not.toBeInTheDocument()
+
+      // Total should be 123 (trimmed value)
+      const totalRow = screen.getByText('Total').closest('tr')
+      expect(totalRow).toHaveTextContent('123')
+    })
+
+    it('should show error for text with leading/trailing whitespace that is not a number', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      const valueInput = screen.getByRole('textbox', { name: /value for row 1/i })
+      await user.type(valueInput, '  abc  ')
+
+      // Error should be shown after trimming
+      expect(screen.getByText(/value must be a valid number/i)).toBeInTheDocument()
+    })
   })
 
   describe('Table Structure', () => {
