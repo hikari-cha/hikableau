@@ -220,11 +220,11 @@ export function ColumnSumTable(): React.JSX.Element {
 
         <div className="flex gap-2">
           <Button onClick={handleExport} variant="outline" size="sm" className="gap-1">
-            <Upload className="h-4 w-4" />
+            <Download className="h-4 w-4" />
             Export
           </Button>
           <Button onClick={handleImport} variant="outline" size="sm" className="gap-1">
-            <Download className="h-4 w-4" />
+            <Upload className="h-4 w-4" />
             Import
           </Button>
         </div>
