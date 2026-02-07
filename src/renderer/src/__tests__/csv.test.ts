@@ -110,9 +110,7 @@ describe('CSV Export', () => {
     })
 
     it('should include rows where only description is empty', () => {
-      const rows: CsvRow[] = [
-        { description: '', value: '100' }
-      ]
+      const rows: CsvRow[] = [{ description: '', value: '100' }]
       const options: ExportOptions = { includeHeader: false, includeTotal: false }
       const result = exportToCsv(rows, 100, options)
 
@@ -120,9 +118,7 @@ describe('CSV Export', () => {
     })
 
     it('should include rows where only value is empty', () => {
-      const rows: CsvRow[] = [
-        { description: 'Item 1', value: '' }
-      ]
+      const rows: CsvRow[] = [{ description: 'Item 1', value: '' }]
       const options: ExportOptions = { includeHeader: false, includeTotal: false }
       const result = exportToCsv(rows, 0, options)
 
@@ -290,9 +286,7 @@ describe('CSV Import', () => {
       const options: ImportOptions = { skipHeader: false, skipTotal: false }
 
       expect(() => importFromCsv(csvContent, options)).toThrow(CsvImportError)
-      expect(() => importFromCsv(csvContent, options)).toThrow(
-        'Column 2 must be a valid number'
-      )
+      expect(() => importFromCsv(csvContent, options)).toThrow('Column 2 must be a valid number')
     })
 
     it('should throw error for Infinity in column 2', () => {
@@ -300,9 +294,7 @@ describe('CSV Import', () => {
       const options: ImportOptions = { skipHeader: false, skipTotal: false }
 
       expect(() => importFromCsv(csvContent, options)).toThrow(CsvImportError)
-      expect(() => importFromCsv(csvContent, options)).toThrow(
-        'Column 2 must be a valid number'
-      )
+      expect(() => importFromCsv(csvContent, options)).toThrow('Column 2 must be a valid number')
     })
 
     it('should throw error for -Infinity in column 2', () => {
@@ -310,9 +302,7 @@ describe('CSV Import', () => {
       const options: ImportOptions = { skipHeader: false, skipTotal: false }
 
       expect(() => importFromCsv(csvContent, options)).toThrow(CsvImportError)
-      expect(() => importFromCsv(csvContent, options)).toThrow(
-        'Column 2 must be a valid number'
-      )
+      expect(() => importFromCsv(csvContent, options)).toThrow('Column 2 must be a valid number')
     })
 
     it('should include row number in error message', () => {
