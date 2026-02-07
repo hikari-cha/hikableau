@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ColumnSumTable } from '../components/ColumnSumTable'
@@ -567,6 +567,16 @@ describe('ColumnSumTable', () => {
   })
 
   describe('Table Clear', () => {
+    let confirmSpy: ReturnType<typeof vi.spyOn>
+
+    beforeEach(() => {
+      confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    })
+
+    afterEach(() => {
+      confirmSpy.mockRestore()
+    })
+
     it('should render a Clear button', () => {
       render(<ColumnSumTable />)
 
@@ -662,6 +672,43 @@ describe('ColumnSumTable', () => {
       const descInputs = screen.getAllByRole('textbox', { name: /description/i })
       expect(descInputs).toHaveLength(1)
       expect(descInputs[0]).toHaveValue('')
+    })
+
+    it('should not clear table when user cancels confirmation dialog', async () => {
+      confirmSpy.mockReturnValue(false)
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Add rows and enter data
+      const addButton = screen.getByRole('button', { name: /add row/i })
+      await user.click(addButton)
+
+      const descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      const valueInputs = screen.getAllByRole('textbox', { name: /value/i })
+
+      await user.type(descInputs[0], 'Item A')
+      await user.type(valueInputs[0], '100')
+
+      // Click Clear but cancel
+      const clearButton = screen.getByRole('button', { name: /clear/i })
+      await user.click(clearButton)
+
+      // Data should still be there
+      expect(screen.getAllByRole('textbox', { name: /description/i })).toHaveLength(2)
+      expect(descInputs[0]).toHaveValue('Item A')
+      expect(valueInputs[0]).toHaveValue('100')
+    })
+
+    it('should show confirmation dialog with correct message', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      const clearButton = screen.getByRole('button', { name: /clear/i })
+      await user.click(clearButton)
+
+      expect(confirmSpy).toHaveBeenCalledWith(
+        'All values will be cleared and the table will be initialized. Are you sure you want to proceed?'
+      )
     })
   })
 
