@@ -26,8 +26,9 @@ export function ColumnSumTable(): React.JSX.Element {
   }
 
   const validateValue = (value: string): string | null => {
-    if (value === '') return null
-    const num = Number(value)
+    const trimmed = value.trim()
+    if (trimmed === '') return null
+    const num = Number(trimmed)
     if (isNaN(num)) {
       return 'Value must be a valid number'
     }
@@ -61,7 +62,7 @@ export function ColumnSumTable(): React.JSX.Element {
 
   const calculateTotal = useCallback((): number => {
     return rows.reduce((sum, row) => {
-      const num = Number(row.value)
+      const num = Number(row.value.trim())
       return sum + (isNaN(num) ? 0 : num)
     }, 0)
   }, [rows])
