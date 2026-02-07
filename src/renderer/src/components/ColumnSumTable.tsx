@@ -1,8 +1,17 @@
 import React, { useState, useCallback } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Download, Upload } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
 import { Input } from '@renderer/components/ui/input'
 import { cn } from '@renderer/lib/utils'
+import {
+  exportToCsv,
+  importFromCsv,
+  downloadCsv,
+  readCsvFile,
+  CsvImportError,
+  type ExportOptions,
+  type ImportOptions
+} from '@renderer/lib/csv'
 
 interface RowData {
   id: string
@@ -84,6 +93,61 @@ export function ColumnSumTable(): React.JSX.Element {
     return str.replace(/\.?0+$/, '')
   }
 
+  // Export options state (default: NO for both)
+  const [exportOptions, setExportOptions] = useState<ExportOptions>({
+    includeHeader: false,
+    includeTotal: false
+  })
+
+  // Import options state (default: NO for both)
+  const [importOptions, setImportOptions] = useState<ImportOptions>({
+    skipHeader: false,
+    skipTotal: false
+  })
+
+  // Import error state
+  const [importError, setImportError] = useState<string | null>(null)
+
+  const handleExport = useCallback(async () => {
+    const csvContent = exportToCsv(
+      rows.map((r) => ({ description: r.description, value: r.value })),
+      calculateTotal(),
+      exportOptions
+    )
+    await downloadCsv(csvContent, 'export.csv')
+  }, [rows, calculateTotal, exportOptions])
+
+  const handleImport = useCallback(async () => {
+    setImportError(null)
+    try {
+      const csvContent = await readCsvFile()
+      const importedRows = importFromCsv(csvContent, importOptions)
+
+      // Convert imported rows to RowData with new IDs
+      const newRows: RowData[] = importedRows.map((row) => ({
+        id: crypto.randomUUID(),
+        description: row.description,
+        value: row.value
+      }))
+
+      // Ensure at least one row
+      if (newRows.length === 0) {
+        newRows.push({ id: crypto.randomUUID(), description: '', value: '' })
+      }
+
+      setRows(newRows)
+      setErrors([]) // Clear any existing validation errors
+    } catch (err) {
+      if (err instanceof CsvImportError) {
+        if (err.message !== 'File selection cancelled') {
+          setImportError(err.message)
+        }
+      } else {
+        setImportError('An unexpected error occurred during import')
+      }
+    }
+  }, [importOptions])
+
   return (
     <div className="w-full max-w-2xl">
       <table className="w-full border-collapse border border-slate-300">
@@ -148,11 +212,96 @@ export function ColumnSumTable(): React.JSX.Element {
         </tbody>
       </table>
 
-      <div className="mt-4">
+      <div className="mt-4 flex items-center justify-between">
         <Button onClick={addRow} variant="default" size="sm" className="gap-1">
           <Plus className="h-4 w-4" />
           Add Row
         </Button>
+
+        <div className="flex gap-2">
+          <Button onClick={handleExport} variant="outline" size="sm" className="gap-1">
+            <Upload className="h-4 w-4" />
+            Export
+          </Button>
+          <Button onClick={handleImport} variant="outline" size="sm" className="gap-1">
+            <Download className="h-4 w-4" />
+            Import
+          </Button>
+        </div>
+      </div>
+
+      {/* Import Error Display */}
+      {importError && (
+        <div className="mt-4 rounded-md border border-red-300 bg-red-50 p-3">
+          <p className="text-sm font-medium text-red-800">Import Error</p>
+          <p className="mt-1 text-sm text-red-600">{importError}</p>
+          <Button
+            onClick={() => setImportError(null)}
+            variant="ghost"
+            size="sm"
+            className="mt-2 text-red-600 hover:bg-red-100 hover:text-red-700"
+          >
+            Dismiss
+          </Button>
+        </div>
+      )}
+
+      {/* Export Options */}
+      <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3">
+        <p className="mb-2 text-sm font-medium text-slate-900">Export Options</p>
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={exportOptions.includeHeader}
+              onChange={(e) =>
+                setExportOptions((prev) => ({ ...prev, includeHeader: e.target.checked }))
+              }
+              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
+            />
+            Include Header Row
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={exportOptions.includeTotal}
+              onChange={(e) =>
+                setExportOptions((prev) => ({ ...prev, includeTotal: e.target.checked }))
+              }
+              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
+            />
+            Include Total Row
+          </label>
+        </div>
+      </div>
+
+      {/* Import Options */}
+      <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3">
+        <p className="mb-2 text-sm font-medium text-slate-900">Import Options</p>
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={importOptions.skipHeader}
+              onChange={(e) =>
+                setImportOptions((prev) => ({ ...prev, skipHeader: e.target.checked }))
+              }
+              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
+            />
+            Skip Header Row
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={importOptions.skipTotal}
+              onChange={(e) =>
+                setImportOptions((prev) => ({ ...prev, skipTotal: e.target.checked }))
+              }
+              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
+            />
+            Skip Total (Footer) Row
+          </label>
+        </div>
       </div>
     </div>
   )

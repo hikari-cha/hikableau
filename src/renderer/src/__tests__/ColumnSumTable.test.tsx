@@ -369,4 +369,71 @@ describe('ColumnSumTable', () => {
       expect(totalRow).toHaveTextContent('0')
     })
   })
+
+  describe('Import/Export UI', () => {
+    it('should render Import and Export buttons', () => {
+      render(<ColumnSumTable />)
+
+      expect(screen.getByRole('button', { name: /import/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /export/i })).toBeInTheDocument()
+    })
+
+    it('should position Export and Import buttons on the right side', () => {
+      render(<ColumnSumTable />)
+
+      const importButton = screen.getByRole('button', { name: /import/i })
+
+      // Both buttons should be in a flex container on the right
+      const buttonContainer = importButton.parentElement
+      expect(buttonContainer).toHaveClass('flex', 'gap-2')
+    })
+
+    it('should render export options with defaults unchecked', () => {
+      render(<ColumnSumTable />)
+
+      const includeHeaderCheckbox = screen.getByRole('checkbox', { name: /include header row/i })
+      const includeTotalCheckbox = screen.getByRole('checkbox', { name: /include total row/i })
+
+      expect(includeHeaderCheckbox).not.toBeChecked()
+      expect(includeTotalCheckbox).not.toBeChecked()
+    })
+
+    it('should render import options with defaults unchecked', () => {
+      render(<ColumnSumTable />)
+
+      const skipHeaderCheckbox = screen.getByRole('checkbox', { name: /skip header row/i })
+      const skipTotalCheckbox = screen.getByRole('checkbox', { name: /skip total.*row/i })
+
+      expect(skipHeaderCheckbox).not.toBeChecked()
+      expect(skipTotalCheckbox).not.toBeChecked()
+    })
+
+    it('should toggle export options when clicked', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      const includeHeaderCheckbox = screen.getByRole('checkbox', { name: /include header row/i })
+      const includeTotalCheckbox = screen.getByRole('checkbox', { name: /include total row/i })
+
+      await user.click(includeHeaderCheckbox)
+      await user.click(includeTotalCheckbox)
+
+      expect(includeHeaderCheckbox).toBeChecked()
+      expect(includeTotalCheckbox).toBeChecked()
+    })
+
+    it('should toggle import options when clicked', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      const skipHeaderCheckbox = screen.getByRole('checkbox', { name: /skip header row/i })
+      const skipTotalCheckbox = screen.getByRole('checkbox', { name: /skip total.*row/i })
+
+      await user.click(skipHeaderCheckbox)
+      await user.click(skipTotalCheckbox)
+
+      expect(skipHeaderCheckbox).toBeChecked()
+      expect(skipTotalCheckbox).toBeChecked()
+    })
+  })
 })
