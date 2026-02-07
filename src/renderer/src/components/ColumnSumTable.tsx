@@ -21,9 +21,7 @@ export function ColumnSumTable(): React.JSX.Element {
   const [errors, setErrors] = useState<ValidationError[]>([])
 
   const validateDescription = (value: string): string | null => {
-    if (value !== '' && typeof value !== 'string') {
-      return 'Description must be a string'
-    }
+    // Currently, all description inputs are strings; no additional validation needed.
     return null
   }
 
