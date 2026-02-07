@@ -115,7 +115,7 @@ export function importFromCsv(
 
     // Validation: Column 2 must be numeric
     const trimmedValue = valueStr.trim()
-    if (trimmedValue !== '' && isNaN(Number(trimmedValue))) {
+    if (trimmedValue !== '' && !Number.isFinite(Number(trimmedValue))) {
       throw new CsvImportError(
         `Row ${startIndex + i + 1}: Column 2 must be a valid number, found "${valueStr}"`
       )

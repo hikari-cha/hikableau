@@ -295,6 +295,26 @@ describe('CSV Import', () => {
       )
     })
 
+    it('should throw error for Infinity in column 2', () => {
+      const csvContent = 'Item 1,100\nItem 2,Infinity'
+      const options: ImportOptions = { skipHeader: false, skipTotal: false }
+
+      expect(() => importFromCsv(csvContent, options)).toThrow(CsvImportError)
+      expect(() => importFromCsv(csvContent, options)).toThrow(
+        'Column 2 must be a valid number'
+      )
+    })
+
+    it('should throw error for -Infinity in column 2', () => {
+      const csvContent = 'Item 1,100\nItem 2,-Infinity'
+      const options: ImportOptions = { skipHeader: false, skipTotal: false }
+
+      expect(() => importFromCsv(csvContent, options)).toThrow(CsvImportError)
+      expect(() => importFromCsv(csvContent, options)).toThrow(
+        'Column 2 must be a valid number'
+      )
+    })
+
     it('should include row number in error message', () => {
       const csvContent = 'Item 1,100\nItem 2,invalid'
       const options: ImportOptions = { skipHeader: false, skipTotal: false }
