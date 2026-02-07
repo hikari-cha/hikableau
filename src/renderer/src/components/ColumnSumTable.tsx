@@ -29,6 +29,21 @@ export function ColumnSumTable(): React.JSX.Element {
   const [rows, setRows] = useState<RowData[]>(() => [{ id: crypto.randomUUID(), description: '', value: '' }])
   const [errors, setErrors] = useState<ValidationError[]>([])
 
+  // Export options state (default: NO for both)
+  const [exportOptions, setExportOptions] = useState<ExportOptions>({
+    includeHeader: false,
+    includeTotal: false
+  })
+
+  // Import options state (default: NO for both)
+  const [importOptions, setImportOptions] = useState<ImportOptions>({
+    skipHeader: false,
+    skipTotal: false
+  })
+
+  // Import error state
+  const [importError, setImportError] = useState<string | null>(null)
+
   const validateDescription = (value: string): string | null => {
     // Currently, all description inputs are strings; no additional validation needed.
     return null
@@ -105,21 +120,6 @@ export function ColumnSumTable(): React.JSX.Element {
     }
     return str.replace(/\.?0+$/, '')
   }
-
-  // Export options state (default: NO for both)
-  const [exportOptions, setExportOptions] = useState<ExportOptions>({
-    includeHeader: false,
-    includeTotal: false
-  })
-
-  // Import options state (default: NO for both)
-  const [importOptions, setImportOptions] = useState<ImportOptions>({
-    skipHeader: false,
-    skipTotal: false
-  })
-
-  // Import error state
-  const [importError, setImportError] = useState<string | null>(null)
 
   const handleExport = useCallback(async () => {
     const csvContent = exportToCsv(
