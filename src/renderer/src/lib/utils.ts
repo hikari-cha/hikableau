@@ -23,14 +23,24 @@ export function formatWithThousandsSeparator(value: string): string {
 
   // Split into integer and decimal parts
   const parts = absValue.split('.')
+
+  // If there is more than one decimal point, treat as invalid and return original
+  if (parts.length > 2) {
+    return value
+  }
+
   const integerPart = parts[0]
-  const decimalPart = parts.length > 1 ? parts[1] : null
+  const decimalPart = parts.length === 2 ? parts[1] : null
 
   // If integer part is empty or not numeric, return original
   if (integerPart === '' || !/^\d+$/.test(integerPart)) {
     return value
   }
 
+  // If fractional part exists and is non-empty, it must be all digits
+  if (decimalPart !== null && decimalPart !== '' && !/^\d+$/.test(decimalPart)) {
+    return value
+  }
   // Format integer part with thousands separators
   const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 
