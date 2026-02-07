@@ -78,6 +78,8 @@ export function ColumnSumTable(): React.JSX.Element {
     setRows([{ id: crypto.randomUUID(), description: '', value: '' }])
     setErrors([])
     setImportError(null)
+    setExportOptions({} as ExportOptions)
+    setImportOptions({} as ImportOptions)
   }, [])
 
   const calculateTotal = useCallback((): number => {
