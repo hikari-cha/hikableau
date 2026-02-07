@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { Plus, Download, Upload, Minus, Trash2 } from 'lucide-react'
 import { Button } from '@renderer/components/ui/button'
 import { Input } from '@renderer/components/ui/input'
@@ -28,6 +28,12 @@ interface ValidationError {
 export function ColumnSumTable(): React.JSX.Element {
   const [rows, setRows] = useState<RowData[]>(() => [{ id: crypto.randomUUID(), description: '', value: '' }])
   const [errors, setErrors] = useState<ValidationError[]>([])
+
+  // Track row ID to focus on (first input of that row)
+  const [focusRowId, setFocusRowId] = useState<string | null>(null)
+
+  // Ref map for description inputs (first column) keyed by row ID
+  const descriptionInputRefs = useRef<Map<string, HTMLInputElement>>(new Map())
 
   // Export options state (default: NO for both)
   const [exportOptions, setExportOptions] = useState<ExportOptions>({
@@ -83,6 +89,40 @@ export function ColumnSumTable(): React.JSX.Element {
   const addRow = useCallback(() => {
     setRows((prevRows) => [...prevRows, { id: crypto.randomUUID(), description: '', value: '' }])
   }, [])
+
+  const insertRowBelow = useCallback((currentRowId: string) => {
+    const newRowId = crypto.randomUUID()
+    setRows((prevRows) => {
+      const currentIndex = prevRows.findIndex((row) => row.id === currentRowId)
+      if (currentIndex === -1) return prevRows
+
+      const newRows = [...prevRows]
+      newRows.splice(currentIndex + 1, 0, { id: newRowId, description: '', value: '' })
+      return newRows
+    })
+    setFocusRowId(newRowId)
+  }, [])
+
+  // Effect to focus on the new row's first input
+  useEffect(() => {
+    if (focusRowId) {
+      const inputElement = descriptionInputRefs.current.get(focusRowId)
+      if (inputElement) {
+        inputElement.focus()
+      }
+      setFocusRowId(null)
+    }
+  }, [focusRowId, rows])
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>, rowId: string) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        insertRowBelow(rowId)
+      }
+    },
+    [insertRowBelow]
+  )
 
   const deleteRow = useCallback((id: string) => {
     setRows((prevRows) => prevRows.filter((row) => row.id !== id))
@@ -180,9 +220,17 @@ export function ColumnSumTable(): React.JSX.Element {
               <td className="border border-slate-300 p-1">
                 <div>
                   <Input
+                    ref={(el) => {
+                      if (el) {
+                        descriptionInputRefs.current.set(row.id, el)
+                      } else {
+                        descriptionInputRefs.current.delete(row.id)
+                      }
+                    }}
                     type="text"
                     value={row.description}
                     onChange={(e) => updateRow(row.id, 'description', e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, row.id)}
                     placeholder={`Item ${index + 1}`}
                     className={cn(
                       'border-0 focus-visible:ring-0 focus-visible:ring-offset-0',
@@ -201,6 +249,7 @@ export function ColumnSumTable(): React.JSX.Element {
                     type="text"
                     value={row.value}
                     onChange={(e) => updateRow(row.id, 'value', e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, row.id)}
                     placeholder="0"
                     className={cn(
                       'border-0 focus-visible:ring-0 focus-visible:ring-offset-0',
