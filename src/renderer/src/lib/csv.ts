@@ -113,16 +113,20 @@ export function importFromCsv(
 
     const [description, valueStr] = columns
 
+    // Remove CSV injection prevention prefix (single quote) if present
+    const sanitizedDescription = description.startsWith("'") ? description.slice(1) : description
+    const sanitizedValue = valueStr.startsWith("'") ? valueStr.slice(1) : valueStr
+
     // Validation: Column 2 must be numeric
-    const trimmedValue = valueStr.trim()
+    const trimmedValue = sanitizedValue.trim()
     if (trimmedValue !== '' && isNaN(Number(trimmedValue))) {
       throw new CsvImportError(
-        `Row ${startIndex + i + 1}: Column 2 must be a valid number, found "${valueStr}"`
+        `Row ${startIndex + i + 1}: Column 2 must be a valid number, found "${sanitizedValue}"`
       )
     }
 
     result.push({
-      description: description,
+      description: sanitizedDescription,
       value: trimmedValue
     })
   }
@@ -179,12 +183,25 @@ function escapeCsvRow(fields: string[]): string {
 /**
  * Escape a single field for CSV output
  * Quotes the field if it contains comma, quote, or newline
+ * Sanitizes fields starting with formula characters to prevent CSV injection
  */
 function escapeCsvField(field: string): string {
-  if (field.includes(',') || field.includes('"') || field.includes('\n') || field.includes('\r')) {
-    return `"${field.replace(/"/g, '""')}"`
+  let sanitized = field
+  
+  // CSV injection prevention: prefix dangerous starting characters with single quote
+  // This prevents Excel/Sheets from interpreting the field as a formula
+  if (field.length > 0) {
+    const firstChar = field[0]
+    if (firstChar === '=' || firstChar === '+' || firstChar === '-' || firstChar === '@') {
+      sanitized = "'" + field
+    }
   }
-  return field
+  
+  // Quote the field if it contains special characters
+  if (sanitized.includes(',') || sanitized.includes('"') || sanitized.includes('\n') || sanitized.includes('\r')) {
+    return `"${sanitized.replace(/"/g, '""')}"`
+  }
+  return sanitized
 }
 
 /**

@@ -128,6 +128,96 @@ describe('CSV Export', () => {
 
       expect(result).toBe('Item 1,')
     })
+
+    describe('CSV Injection Prevention', () => {
+      it('should sanitize fields starting with equals sign', () => {
+        const rows: CsvRow[] = [{ description: '=1+1', value: '100' }]
+        const options: ExportOptions = { includeHeader: false, includeTotal: false }
+        const result = exportToCsv(rows, 100, options)
+
+        expect(result).toBe("'=1+1,100")
+      })
+
+      it('should sanitize fields starting with plus sign', () => {
+        const rows: CsvRow[] = [{ description: '+1+1', value: '100' }]
+        const options: ExportOptions = { includeHeader: false, includeTotal: false }
+        const result = exportToCsv(rows, 100, options)
+
+        expect(result).toBe("'+1+1,100")
+      })
+
+      it('should sanitize fields starting with minus sign', () => {
+        const rows: CsvRow[] = [{ description: '-1+1', value: '100' }]
+        const options: ExportOptions = { includeHeader: false, includeTotal: false }
+        const result = exportToCsv(rows, 100, options)
+
+        expect(result).toBe("'-1+1,100")
+      })
+
+      it('should sanitize fields starting with at sign', () => {
+        const rows: CsvRow[] = [{ description: '@SUM(A1:A10)', value: '100' }]
+        const options: ExportOptions = { includeHeader: false, includeTotal: false }
+        const result = exportToCsv(rows, 100, options)
+
+        expect(result).toBe("'@SUM(A1:A10),100")
+      })
+
+      it('should sanitize and quote fields with formula and comma', () => {
+        const rows: CsvRow[] = [{ description: '=1+1, test', value: '100' }]
+        const options: ExportOptions = { includeHeader: false, includeTotal: false }
+        const result = exportToCsv(rows, 100, options)
+
+        expect(result).toBe('"\'=1+1, test",100')
+      })
+
+      it('should sanitize and quote fields with formula and quotes', () => {
+        const rows: CsvRow[] = [{ description: '=1+"test"', value: '100' }]
+        const options: ExportOptions = { includeHeader: false, includeTotal: false }
+        const result = exportToCsv(rows, 100, options)
+
+        expect(result).toBe('"\'=1+""test""",100')
+      })
+
+      it('should sanitize and quote fields with formula and newline', () => {
+        const rows: CsvRow[] = [{ description: '=1+1\ntest', value: '100' }]
+        const options: ExportOptions = { includeHeader: false, includeTotal: false }
+        const result = exportToCsv(rows, 100, options)
+
+        expect(result).toBe('"\'=1+1\ntest",100')
+      })
+
+      it('should sanitize value field starting with formula character', () => {
+        const rows: CsvRow[] = [{ description: 'Item 1', value: '=SUM(A1:A10)' }]
+        const options: ExportOptions = { includeHeader: false, includeTotal: false }
+        const result = exportToCsv(rows, 0, options)
+
+        expect(result).toBe("Item 1,'=SUM(A1:A10)")
+      })
+
+      it('should not sanitize negative numbers in value field', () => {
+        const rows: CsvRow[] = [{ description: 'Item 1', value: '-100' }]
+        const options: ExportOptions = { includeHeader: false, includeTotal: false }
+        const result = exportToCsv(rows, -100, options)
+
+        expect(result).toBe("Item 1,'-100")
+      })
+
+      it('should handle empty fields correctly', () => {
+        const rows: CsvRow[] = [{ description: '', value: '100' }]
+        const options: ExportOptions = { includeHeader: false, includeTotal: false }
+        const result = exportToCsv(rows, 100, options)
+
+        expect(result).toBe(',100')
+      })
+
+      it('should sanitize multiple dangerous fields in same row', () => {
+        const rows: CsvRow[] = [{ description: '=1+1', value: '@SUM(A1)' }]
+        const options: ExportOptions = { includeHeader: false, includeTotal: false }
+        const result = exportToCsv(rows, 0, options)
+
+        expect(result).toBe("'=1+1,'@SUM(A1)")
+      })
+    })
   })
 })
 
@@ -361,6 +451,40 @@ describe('Round-trip Export/Import', () => {
     const originalRows: CsvRow[] = [
       { description: 'Item, with comma', value: '100' },
       { description: 'Item "quoted"', value: '200' }
+    ]
+    const total = 300
+
+    const exportOptions: ExportOptions = { includeHeader: false, includeTotal: false }
+    const importOptions: ImportOptions = { skipHeader: false, skipTotal: false }
+
+    const csvContent = exportToCsv(originalRows, total, exportOptions)
+    const importedRows = importFromCsv(csvContent, importOptions)
+
+    expect(importedRows).toEqual(originalRows)
+  })
+
+  it('should round-trip data with formula characters', () => {
+    const originalRows: CsvRow[] = [
+      { description: '=1+1', value: '100' },
+      { description: '+test', value: '200' },
+      { description: '-test', value: '300' },
+      { description: '@SUM(A1:A10)', value: '400' }
+    ]
+    const total = 1000
+
+    const exportOptions: ExportOptions = { includeHeader: false, includeTotal: false }
+    const importOptions: ImportOptions = { skipHeader: false, skipTotal: false }
+
+    const csvContent = exportToCsv(originalRows, total, exportOptions)
+    const importedRows = importFromCsv(csvContent, importOptions)
+
+    expect(importedRows).toEqual(originalRows)
+  })
+
+  it('should round-trip data with formula characters and special CSV characters', () => {
+    const originalRows: CsvRow[] = [
+      { description: '=1+1, test', value: '100' },
+      { description: '+test "quoted"', value: '200' }
     ]
     const total = 300
 
