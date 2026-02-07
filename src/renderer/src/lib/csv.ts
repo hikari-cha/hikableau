@@ -223,7 +223,7 @@ export async function downloadCsv(content: string, suggestedFilename: string): P
   // Use the File System Access API if available
   if ('showSaveFilePicker' in window) {
     try {
-      const handle = await (window as WindowWithFileSystem).showSaveFilePicker({
+      const handle = await (window as unknown as WindowWithFileSystem).showSaveFilePicker({
         suggestedName: suggestedFilename,
         types: [
           {
@@ -266,7 +266,7 @@ export async function readCsvFile(): Promise<string> {
   // Use the File System Access API if available
   if ('showOpenFilePicker' in window) {
     try {
-      const [handle] = await (window as WindowWithFileSystem).showOpenFilePicker({
+      const [handle] = await (window as unknown as WindowWithFileSystem).showOpenFilePicker({
         types: [
           {
             description: 'CSV Files',

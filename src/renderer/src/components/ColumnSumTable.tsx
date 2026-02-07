@@ -50,7 +50,7 @@ export function ColumnSumTable(): React.JSX.Element {
   // Import error state
   const [importError, setImportError] = useState<string | null>(null)
 
-  const validateDescription = (value: string): string | null => {
+  const validateDescription = (_value: string): string | null => {
     // Currently, all description inputs are strings; no additional validation needed.
     return null
   }
