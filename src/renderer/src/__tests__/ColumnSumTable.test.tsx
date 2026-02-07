@@ -382,7 +382,6 @@ describe('ColumnSumTable', () => {
       render(<ColumnSumTable />)
 
       const importButton = screen.getByRole('button', { name: /import/i })
-      const exportButton = screen.getByRole('button', { name: /export/i })
 
       // Both buttons should be in a flex container on the right
       const buttonContainer = importButton.parentElement
