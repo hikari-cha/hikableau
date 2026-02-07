@@ -17,7 +17,7 @@ interface ValidationError {
 }
 
 export function ColumnSumTable(): React.JSX.Element {
-  const [rows, setRows] = useState<RowData[]>([{ id: crypto.randomUUID(), description: '', value: '' }])
+  const [rows, setRows] = useState<RowData[]>(() => [{ id: crypto.randomUUID(), description: '', value: '' }])
   const [errors, setErrors] = useState<ValidationError[]>([])
 
   const validateDescription = (value: string): string | null => {
