@@ -142,6 +142,15 @@ export function ColumnSumTable(): React.JSX.Element {
     setImportOptions({} as ImportOptions)
   }, [])
 
+  const handleClear = useCallback(() => {
+    const confirmed = window.confirm(
+      'All values will be cleared and the table will be initialized. Are you sure you want to proceed?'
+    )
+    if (confirmed) {
+      clearTable()
+    }
+  }, [clearTable])
+
   const calculateTotal = useCallback((): number => {
     return rows.reduce((sum, row) => {
       const num = Number(row.value.trim())
@@ -296,7 +305,7 @@ export function ColumnSumTable(): React.JSX.Element {
             <Plus className="h-4 w-4" />
             Add Row
           </Button>
-          <Button onClick={clearTable} variant="outline" size="sm" className="gap-1">
+          <Button onClick={handleClear} variant="outline" size="sm" className="gap-1">
             <Trash2 className="h-4 w-4" />
             Clear
           </Button>
