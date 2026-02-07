@@ -217,7 +217,7 @@ export function ColumnSumTable(): React.JSX.Element {
                     onClick={() => deleteRow(row.id)}
                     variant="ghost"
                     size="sm"
-                    className="absolute -right-8 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full p-0 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-100 hover:text-red-600"
+                    className="absolute -right-8 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full p-0 invisible opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 focus-visible:visible focus-visible:opacity-100 hover:bg-red-100 hover:text-red-600"
                     aria-label={`Delete row ${index + 1}`}
                   >
                     <Minus className="h-3 w-3" />
