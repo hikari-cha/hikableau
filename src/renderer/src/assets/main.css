@@ -1,1 +1,10 @@
 @import "tailwindcss";
+@import "./base.css";
+
+@source "../**/*.{ts,tsx}";
+
+@theme {
+  --radius-md: 0.5rem;
+  --color-primary: var(--color-slate-900);
+  --color-accent: var(--color-indigo-600);
+}
