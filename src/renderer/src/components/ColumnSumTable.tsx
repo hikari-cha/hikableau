@@ -92,11 +92,15 @@ export function ColumnSumTable(): React.JSX.Element {
 
   const insertRowBelow = useCallback((currentRowId: string) => {
     const newRowId = crypto.randomUUID()
-    pendingFocusRowIdRef.current = newRowId
     setRows((prevRows) => {
       const currentIndex = prevRows.findIndex((row) => row.id === currentRowId)
-      if (currentIndex === -1) return prevRows
+      if (currentIndex === -1) {
+        // Current row no longer exists; clear any pending focus target
+        pendingFocusRowIdRef.current = null
+        return prevRows
+      }
 
+      pendingFocusRowIdRef.current = newRowId
       const newRows = [...prevRows]
       newRows.splice(currentIndex + 1, 0, { id: newRowId, description: '', value: '' })
       return newRows
