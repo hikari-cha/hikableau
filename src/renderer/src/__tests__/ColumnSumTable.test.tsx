@@ -824,4 +824,149 @@ describe('ColumnSumTable', () => {
       expect(descInputs).toHaveLength(4)
     })
   })
+
+  describe('Auto Focus on Row Insertion', () => {
+    it('should be in ready-to-type state after Enter key inserts a new row from description column', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      const descInput = screen.getByRole('textbox', { name: /description for row 1/i })
+      await user.type(descInput, 'First Item')
+
+      // Press Enter to insert a new row
+      await user.keyboard('{Enter}')
+
+      // The new row's description input should be focused
+      const descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs[1]).toHaveFocus()
+
+      // Type immediately into the new row to verify ready-to-type state
+      await user.keyboard('Second Item')
+
+      // Verify the text was entered into the new row
+      expect(descInputs[1]).toHaveValue('Second Item')
+      // Original row should still have its value
+      expect(descInputs[0]).toHaveValue('First Item')
+    })
+
+    it('should be in ready-to-type state after Enter key inserts a new row from value column', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      const valueInput = screen.getByRole('textbox', { name: /value for row 1/i })
+      await user.type(valueInput, '100')
+
+      // Press Enter in value column to insert a new row
+      await user.keyboard('{Enter}')
+
+      // Focus should move to the DESCRIPTION column (first column) of the new row
+      const descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs[1]).toHaveFocus()
+
+      // Type immediately to verify ready-to-type state
+      await user.keyboard('New Item')
+
+      expect(descInputs[1]).toHaveValue('New Item')
+    })
+
+    it('should focus description (not value) column of new row regardless of which column Enter was pressed in', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Press Enter from the value column
+      const valueInput = screen.getByRole('textbox', { name: /value for row 1/i })
+      await user.click(valueInput)
+      await user.keyboard('{Enter}')
+
+      // Focus should be on the description input of the new row, NOT the value input
+      const descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      const valueInputs = screen.getAllByRole('textbox', { name: /value/i })
+
+      expect(descInputs[1]).toHaveFocus()
+      expect(valueInputs[1]).not.toHaveFocus()
+    })
+
+    it('should auto-focus when inserting from the last row of the table', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Add two more rows via Add Row button
+      const addButton = screen.getByRole('button', { name: /add row/i })
+      await user.click(addButton)
+      await user.click(addButton)
+
+      // Press Enter in the last row's description
+      let descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      await user.click(descInputs[2]) // last row (index 2)
+      await user.keyboard('{Enter}')
+
+      // Should now have 4 rows, and the new row at index 3 should be focused
+      descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs).toHaveLength(4)
+      expect(descInputs[3]).toHaveFocus()
+    })
+
+    it('should auto-focus when inserting from a middle row with data', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      // Add rows and enter data
+      const addButton = screen.getByRole('button', { name: /add row/i })
+      await user.click(addButton)
+      await user.click(addButton)
+
+      let descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      let valueInputs = screen.getAllByRole('textbox', { name: /value/i })
+
+      await user.type(descInputs[0], 'Alpha')
+      await user.type(valueInputs[0], '10')
+      await user.type(descInputs[1], 'Beta')
+      await user.type(valueInputs[1], '20')
+      await user.type(descInputs[2], 'Gamma')
+      await user.type(valueInputs[2], '30')
+
+      // Press Enter in the middle row's value column
+      await user.click(valueInputs[1])
+      await user.keyboard('{Enter}')
+
+      // New row should be inserted after Beta, and its description should be focused
+      descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs).toHaveLength(4)
+      expect(descInputs[2]).toHaveFocus() // new row at index 2
+      expect(descInputs[2]).toHaveValue('') // should be empty
+
+      // Verify order: Alpha, Beta, (new empty), Gamma
+      expect(descInputs[0]).toHaveValue('Alpha')
+      expect(descInputs[1]).toHaveValue('Beta')
+      expect(descInputs[3]).toHaveValue('Gamma')
+    })
+
+    it('should support rapid sequential Enter presses with auto-focus on each new row', async () => {
+      const user = userEvent.setup()
+      render(<ColumnSumTable />)
+
+      const descInput = screen.getByRole('textbox', { name: /description for row 1/i })
+      await user.click(descInput)
+
+      // Press Enter 3 times rapidly; each press should focus the new row
+      await user.keyboard('{Enter}')
+      let descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs[1]).toHaveFocus()
+
+      // Type something and press Enter again
+      await user.keyboard('Row 2{Enter}')
+      descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs[2]).toHaveFocus()
+
+      await user.keyboard('Row 3{Enter}')
+      descInputs = screen.getAllByRole('textbox', { name: /description/i })
+      expect(descInputs[3]).toHaveFocus()
+
+      // Verify all rows have correct data
+      expect(descInputs[0]).toHaveValue('')
+      expect(descInputs[1]).toHaveValue('Row 2')
+      expect(descInputs[2]).toHaveValue('Row 3')
+      expect(descInputs[3]).toHaveValue('') // latest new row
+    })
+  })
 })
