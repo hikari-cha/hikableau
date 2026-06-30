@@ -1,8 +1,8 @@
 # Hikableau
 
-A desktop spreadsheet application for calculating column sums, built with Electron, React, and TypeScript.
+A desktop spreadsheet application for calculating column sums, built with Tauri, React, and TypeScript.
 
-![Tech Stack](https://img.shields.io/badge/Electron-React-blue) ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4-38B2AC)
+![Tech Stack](https://img.shields.io/badge/Tauri-React-blue) ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4-38B2AC)
 
 ## Features
 
@@ -32,8 +32,8 @@ A two-column spreadsheet table with automatic sum calculation:
 
 ## Tech Stack
 
-- **Framework**: Electron + React (Vite)
-- **Language**: TypeScript
+- **Framework**: Tauri v2 + React (Vite)
+- **Language**: TypeScript (frontend), Rust (backend)
 - **Styling**: Tailwind CSS v4
 - **Components**: shadcn/ui (Button, Input)
 - **Icons**: Lucide React
@@ -45,6 +45,7 @@ A two-column spreadsheet table with automatic sum calculation:
 
 - Node.js (LTS recommended)
 - npm
+- Rust toolchain (install via [rustup](https://rustup.rs/))
 
 ### Installation
 
@@ -54,10 +55,16 @@ npm install
 
 ### Development
 
-Start the application in development mode with hot-reload:
+Start the full application (Tauri + frontend) in development mode with hot-reload:
 
 ```bash
 npm run dev
+```
+
+To run only the frontend (Vite dev server):
+
+```bash
+npm run dev:frontend
 ```
 
 ### Running Tests
@@ -78,15 +85,10 @@ npm run test:coverage
 Build the application for distribution:
 
 ```bash
-# Windows
-npm run build:win
-
-# macOS
-npm run build:mac
-
-# Linux
-npm run build:linux
+npm run build
 ```
+
+Tauri automatically targets the current platform and produces the appropriate installer.
 
 ## Usage
 
@@ -122,22 +124,33 @@ npm run build:linux
 ## Project Structure
 
 ```
-src/
-├── main/              # Electron main process
-│   └── index.ts
-├── preload/           # Preload scripts
-│   ├── index.ts
-│   └── index.d.ts
-└── renderer/          # React frontend
-    └── src/
-        ├── App.tsx
-        ├── components/
-        │   ├── ColumnSumTable.tsx   # Main table component
-        │   └── ui/                   # shadcn/ui components
-        ├── lib/
-        │   ├── csv.ts               # CSV import/export utilities
-        │   └── utils.ts             # Utility functions
-        └── __tests__/               # Unit tests
+src/                        # React frontend (Vite)
+├── __tests__/              # Unit tests
+├── assets/
+├── components/
+│   ├── ColumnSumTable/     # Main table component
+│   │   ├── index.tsx
+│   │   ├── DataRow.tsx
+│   │   └── OptionsPanel.tsx
+│   └── ui/                 # shadcn/ui components
+├── hooks/
+│   ├── useCsvIO.ts         # CSV import/export logic
+│   └── useTableRows.ts     # Table row state management
+├── lib/
+│   ├── csv.ts              # CSV parsing utilities
+│   ├── file-system.ts      # Tauri file dialog wrappers
+│   └── utils.ts
+├── App.tsx
+└── main.tsx
+src-tauri/                  # Tauri/Rust backend
+├── src/
+│   ├── lib.rs
+│   └── main.rs
+├── capabilities/
+│   └── default.json
+├── icons/
+├── Cargo.toml
+└── tauri.conf.json
 ```
 
 ## Recommended IDE Setup
